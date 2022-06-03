@@ -3,21 +3,27 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
 	const disposables: vscode.Disposable[] = [];
 
+	let listenersInstalled = false;
 	disposables.push(
-		vscode.commands.registerCommand('debug-protocol-extension.start', () => {		
+		vscode.commands.registerCommand('debug-protocol-extension.start', () => {
+			console.log('Start observing debug session breakpoints');
 			if (vscode.debug.activeDebugSession){
 				printBreakpoints(vscode.debug.activeDebugSession);
 			}
 			
-			vscode.debug.onDidStartDebugSession(debugSession => {
-				printBreakpoints(debugSession);
-			});
+			if (! listenersInstalled){
+				vscode.debug.onDidStartDebugSession(debugSession => {
+					printBreakpoints(debugSession);
+				});
 
-			vscode.debug.onDidChangeBreakpoints(_event => {
-				if (vscode.debug.activeDebugSession){
-					printBreakpoints(vscode.debug.activeDebugSession);
-				}
-			});
+				vscode.debug.onDidChangeBreakpoints(_event => {
+					if (vscode.debug.activeDebugSession){
+						printBreakpoints(vscode.debug.activeDebugSession);
+					}
+				});
+
+				listenersInstalled = true;
+			}
         })
 	);
 
